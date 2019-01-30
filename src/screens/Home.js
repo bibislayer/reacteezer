@@ -1,14 +1,14 @@
 import React from 'react';
 import { Text, View, Image, Button } from 'react-native';
 import * as firebase from 'firebase';
+import 'firebase/firestore';
 import PropTypes from 'prop-types';
 import Styles from '../utils/Styles';
 import FlatList from '../components/FlatList';
-
 const iconFile = require('../assets/icon.png');
 
 class Home extends React.Component {
-  state = { currentUser: null };
+  state = { currentUser: firebase.auth() };
 
   navigationOptions = {
     drawerLabel: 'Home',
@@ -16,17 +16,24 @@ class Home extends React.Component {
   };
 
   componentDidMount() {
-    const { currentUser } = firebase.auth();
-    this.setState({ currentUser });
-    fetch('http://api.deezer.com/search?q=eminem', {
-      method: 'GET',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json'
-      }
-    }).then(response => {
-      console.log(response);
-    });
+    const db = firebase.firestore();
+    const playlists = db.collection('playlists');
+    const query = playlists
+      .where('user', '==', '13LoI5cAotWHalxuIcyxLOXGBpt1')
+      .get()
+      .then(snapshot => {
+        if (snapshot.empty) {
+          console.log('No matching documents.');
+          return;
+        }
+
+        snapshot.forEach(doc => {
+          console.log(doc.id, '=>', doc.data());
+        });
+      })
+      .catch(err => {
+        console.log('Error getting documents', err);
+      });
   }
 
   render() {
@@ -37,6 +44,7 @@ class Home extends React.Component {
       return (
         <View style={Styles.container}>
           <FlatList navigation={navigation} />
+          <Button onPress={() => navigation.navigate('Search')} title="Ajouter un titre" />
         </View>
       );
     }

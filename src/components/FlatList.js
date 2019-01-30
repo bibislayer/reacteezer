@@ -44,7 +44,7 @@ class FlatListDemo extends React.Component {
   };
 
   render() {
-    const { data } = this.state;
+    const { data } = this.props;
     return (
       <FlatList
         data={data}
@@ -52,9 +52,9 @@ class FlatListDemo extends React.Component {
           <ListItem
             style={{ width: '100%' }}
             roundAvatar
-            title={`${item.name.first} ${item.name.last}`}
-            subtitle={item.name.first}
-            avatar={{ uri: item.picture.thumbnail }}
+            title={item.title}
+            subtitle={item.artist.name}
+            avatar={{ uri: item.artist.picture_small }}
           />
         )}
         keyExtractor={(item, index) => index.toString()}
@@ -63,7 +63,4 @@ class FlatListDemo extends React.Component {
   }
 }
 
-FlatListDemo.propTypes = {
-  navigation: PropTypes.shape({ navigate: PropTypes.func.isRequired }).isRequired
-};
 export default FlatListDemo;

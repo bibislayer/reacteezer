@@ -3,6 +3,7 @@ import Loading from './screens/Loading';
 import SignUp from './screens/SignUp';
 import Login from './screens/Login';
 import Home from './screens/Home';
+import Search from './screens/Search';
 import Profile from './screens/Profile';
 import Drawer from './components/Drawer';
 
@@ -12,7 +13,8 @@ const AuthNavigator = createStackNavigator(
     Login,
     SignUp,
     Home,
-    Profile
+    Profile,
+    Search
   },
   {
     initialRoute: 'Loading',
