@@ -3,11 +3,10 @@ import { Text, View, Image, Button } from 'react-native';
 import * as firebase from 'firebase';
 import PropTypes from 'prop-types';
 import Styles from '../utils/Styles';
-import FlatList from '../components/FlatList';
 
 const iconFile = require('../assets/icon.png');
 
-class Home extends React.Component {
+class Profile extends React.Component {
   state = { currentUser: null };
 
   navigationOptions = {
@@ -18,15 +17,6 @@ class Home extends React.Component {
   componentDidMount() {
     const { currentUser } = firebase.auth();
     this.setState({ currentUser });
-    fetch('http://api.deezer.com/search?q=eminem', {
-      method: 'GET',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json'
-      }
-    }).then(response => {
-      console.log(response);
-    });
   }
 
   render() {
@@ -36,7 +26,8 @@ class Home extends React.Component {
     if (currentUser) {
       return (
         <View style={Styles.container}>
-          <FlatList navigation={navigation} />
+          <Button onPress={() => navigation.toggleDrawer()} title="Go back home" />
+          <Text>{`Hi PROFILE ${currentUser.email}`}</Text>
         </View>
       );
     }
@@ -44,8 +35,8 @@ class Home extends React.Component {
   }
 }
 
-Home.propTypes = {
+Profile.propTypes = {
   navigation: PropTypes.shape({ navigate: PropTypes.func.isRequired }).isRequired
 };
 
-export default Home;
+export default Profile;

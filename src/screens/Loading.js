@@ -12,16 +12,20 @@ const mapDispatchToProps = dispatch => ({
 
 class Loading extends React.Component {
   componentDidMount() {
+    const { navigation } = this.props;
     firebase.auth().onAuthStateChanged(user => {
-      const { dispatchLogin, navigation } = this.props;
+      const { dispatchLogin } = this.props;
       dispatchLogin(true);
       navigation.navigate(user ? 'Home' : 'Login');
     });
+    if (firebase.auth().currentUser) {
+      navigation.navigate('Home');
+    }
   }
 
   render() {
     return (
-      <View style={Styles}>
+      <View style={Styles.container}>
         <Text>Loading</Text>
         <ActivityIndicator size="large" />
       </View>
