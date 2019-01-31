@@ -1,50 +1,11 @@
 import React from 'react';
-import { Image, FlatList } from 'react-native';
-import { List, ListItem } from 'react-native-elements';
 import PropTypes from 'prop-types';
-import Styles from '../utils/Styles';
+import { FlatList } from 'react-native';
+import { ListItem } from 'react-native-elements';
 
-const iconFile = require('../assets/icon.png');
-
-class FlatListDemo extends React.Component {
-  state = {
-    loading: true,
-    data: [],
-    page: 1,
-    seed: 1,
-    error: null,
-    refreshing: false
-  };
-
-  navigationOptions = {
-    drawerLabel: 'Home',
-    drawerIcon: ({ tintColor }) => <Image source={iconFile} style={[Styles.icon, { tintColor }]} />
-  };
-
-  componentDidMount() {
-    this.makeRemoteRequest();
-  }
-
-  makeRemoteRequest = () => {
-    const { data, page, seed } = this.state;
-    const url = `https://randomuser.me/api/?seed=${seed}&page=${page}&results=20`;
-    fetch(url)
-      .then(res => res.json())
-      .then(res => {
-        this.setState({
-          data: page === 1 ? res.results : [...data, ...res.results],
-          error: res.error || null,
-          loading: false,
-          refreshing: false
-        });
-      })
-      .catch(err => {
-        this.setState({ error: err, loading: false });
-      });
-  };
-
+class MyFlatList extends React.PureComponent {
   render() {
-    const { data } = this.props;
+    const { data, onPress } = this.props;
     return (
       <FlatList
         data={data}
@@ -53,8 +14,12 @@ class FlatListDemo extends React.Component {
             style={{ width: '100%' }}
             roundAvatar
             title={item.title}
-            subtitle={item.artist.name}
-            avatar={{ uri: item.artist.picture_small }}
+            subtitle={item.artist && item.artist.name}
+            onPress={() => onPress(item.uid)}
+            avatar={{
+              source: item.artist && { uri: item.artist.picture_small },
+              title: item.title
+            }}
           />
         )}
         keyExtractor={(item, index) => index.toString()}
@@ -63,4 +28,9 @@ class FlatListDemo extends React.Component {
   }
 }
 
-export default FlatListDemo;
+MyFlatList.propTypes = {
+  data: PropTypes.instanceOf(Array).isRequired,
+  onPress: PropTypes.func.isRequired
+};
+
+export default MyFlatList;

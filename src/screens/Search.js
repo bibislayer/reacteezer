@@ -36,7 +36,7 @@ class Search extends React.Component {
       return (
         <View style={Styles.container}>
           <SearchBar placeholder="Type Here..." onChangeText={this.updateSearch} value={search} />
-          <FlatList data={resultSearch} />
+          <FlatList data={resultSearch} onPress={() => {}} />
         </View>
       );
     }

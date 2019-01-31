@@ -4,6 +4,7 @@ import SignUp from './screens/SignUp';
 import Login from './screens/Login';
 import Home from './screens/Home';
 import Search from './screens/Search';
+import Playlists from './screens/Playlists';
 import Profile from './screens/Profile';
 import Drawer from './components/Drawer';
 
@@ -14,7 +15,8 @@ const AuthNavigator = createStackNavigator(
     SignUp,
     Home,
     Profile,
-    Search
+    Search,
+    Playlists
   },
   {
     initialRoute: 'Loading',
