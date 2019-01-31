@@ -26,7 +26,6 @@ class Loading extends React.Component {
   render() {
     return (
       <View style={Styles.container}>
-        <Text>Loading</Text>
         <ActivityIndicator size="large" />
       </View>
     );

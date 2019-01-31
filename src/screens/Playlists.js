@@ -1,5 +1,6 @@
 import React from 'react';
-import { Text, View, Image, Button } from 'react-native';
+import { View, Alert, ActivityIndicator, Text } from 'react-native';
+import ActionButton from 'react-native-action-button';
 import PropTypes from 'prop-types';
 import * as firebase from 'firebase';
 import 'firebase/firestore';
@@ -8,8 +9,8 @@ import FlatList from '../components/FlatList';
 
 class Playlists extends React.Component {
   state = {
-    currentUser: firebase.auth(),
-    tracks: []
+    tracks: [],
+    loaded: false
   };
 
   componentDidMount() {
@@ -22,36 +23,106 @@ class Playlists extends React.Component {
       .get()
       .then(snapshot => {
         if (snapshot.empty) {
+          this.setState({ loaded: true });
           return;
         }
 
         snapshot.forEach(doc => {
           const item = {
+            uid: doc.id,
             title: doc.data().title,
             artist: {
-              name: doc.data().artist
+              name: doc.data().artist.name
             }
           };
           arrTracks.push(item);
         });
-        this.setState({ tracks: arrTracks });
+        this.setState({ tracks: arrTracks, loaded: true });
       })
       .catch(err => {
         console.log('Error getting documents', err);
       });
   }
 
-  render() {
-    const { currentUser, search, tracks } = this.state;
+  onLongPress(uid) {
+    Alert.alert(
+      'Suppression de la track',
+      'Confirmer la suppression de la track',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel'
+        },
+        {
+          text: 'OK',
+          onPress: () => {
+            this.removeTrack(uid);
+          }
+        }
+      ],
+      { cancelable: false }
+    );
+  }
 
-    if (currentUser) {
+  removeTrack(uid) {
+    const { tracks } = this.state;
+    const arrTracks = tracks;
+    const { navigation } = this.props;
+    const playlistUid = navigation.getParam('uid');
+    const db = firebase.firestore();
+    db.collection(`playlists/${playlistUid}/tracks/`)
+      .doc(uid)
+      .delete()
+      .then(() => {
+        const index = arrTracks.indexOf(uid);
+        if (index !== -1) arrTracks.splice(index, 1);
+        this.setState({ tracks: arrTracks });
+        console.log('Document successfully deleted!');
+      })
+      .catch(error => {
+        console.error('Error removing document: ', error);
+      });
+  }
+
+  render() {
+    const { loaded, tracks } = this.state;
+    const { navigation } = this.props;
+    const playlistUid = navigation.getParam('uid');
+    if (!loaded) {
       return (
         <View style={Styles.container}>
-          <FlatList data={tracks} onPress={() => {}} />
+          <ActivityIndicator size="large" />
         </View>
       );
     }
-    return null;
+    if (tracks.length > 0) {
+      return (
+        <View style={Styles.container}>
+          <FlatList data={tracks} onPress={() => {}} onLongPress={uid => this.onLongPress(uid)} />
+          <ActionButton
+            buttonColor="rgba(231,76,60,1)"
+            onPress={() => {
+              navigation.navigate('Search', {
+                uid: playlistUid
+              });
+            }}
+          />
+        </View>
+      );
+    }
+    return (
+      <View style={Styles.container}>
+        <Text style={{ marginTop: 22, alignItems: 'center' }}>Aucun morceau trouvé !</Text>
+        <ActionButton
+          buttonColor="rgba(231,76,60,1)"
+          onPress={() => {
+            navigation.navigate('Search', {
+              uid: playlistUid
+            });
+          }}
+        />
+      </View>
+    );
   }
 }
 

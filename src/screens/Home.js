@@ -1,5 +1,16 @@
 import React from 'react';
-import { Modal, Text, View, Image, Alert, TextInput, Button } from 'react-native';
+import {
+  Modal,
+  Text,
+  View,
+  Image,
+  Alert,
+  TextInput,
+  Button,
+  ActivityIndicator
+} from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome';
+import { Input } from 'react-native-elements';
 import ActionButton from 'react-native-action-button';
 import * as firebase from 'firebase';
 import 'firebase/firestore';
@@ -14,7 +25,8 @@ class Home extends React.Component {
     currentUser: firebase.auth(),
     playlists: [],
     isModalVisible: false,
-    text: null
+    text: null,
+    loaded: false
   };
 
   navigationOptions = {
@@ -42,7 +54,7 @@ class Home extends React.Component {
             };
             arrPlaylists.push(item);
           });
-          this.setState({ playlists: arrPlaylists });
+          this.setState({ playlists: arrPlaylists, loaded: true });
         })
         .catch(err => {
           console.log('Error getting documents', err);
@@ -50,22 +62,48 @@ class Home extends React.Component {
     }
   }
 
+  onLongPress(uid) {
+    Alert.alert(
+      'Suppression de la playlist',
+      'Confirmer la suppression de la playlist',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel'
+        },
+        {
+          text: 'OK',
+          onPress: () => {
+            this.removePlaylist(uid);
+          }
+        }
+      ],
+      { cancelable: false }
+    );
+  }
+
   submitPlaylist = () => {
-    const db = firebase.database();
-    const playlists = db.ref('playlists/');
-    const { currentUser, text } = this.state;
-    playlists
-      .push({
+    this.setState({ loaded: false });
+    const db = firebase.firestore();
+    const { currentUser, text, playlists } = this.state;
+    const arrPlaylists = playlists;
+    db.collection('playlists')
+      .add({
         title: text,
         user: currentUser.currentUser.uid
       })
-      .then(data => {
-        //success callback
-        console.log('data ', data);
+      .then(doc => {
+        const item = {
+          uid: doc.id,
+          title: text
+        };
+        arrPlaylists.push(item);
+        this.setState({ playlists: arrPlaylists, loaded: true });
+        this.toggleModal();
+        console.log('Document successfully written!');
       })
       .catch(error => {
-        //error callback
-        console.log('error ', error);
+        console.error('Error writing document: ', error);
       });
   };
 
@@ -74,19 +112,45 @@ class Home extends React.Component {
     this.setState({ isModalVisible: !isModalVisible });
   };
 
+  removePlaylist(uid) {
+    const { playlists } = this.state;
+    const arrPlaylists = playlists;
+    const db = firebase.firestore();
+    db.collection('playlists')
+      .doc(uid)
+      .delete()
+      .then(() => {
+        const index = arrPlaylists.indexOf(uid);
+        if (index !== -1) arrPlaylists.splice(index, 1);
+        this.setState({ playlists: arrPlaylists });
+        console.log('Document successfully deleted!');
+      })
+      .catch(error => {
+        console.error('Error removing document: ', error);
+      });
+  }
+
   render() {
-    const { currentUser, playlists, isModalVisible } = this.state;
+    const { currentUser, playlists, isModalVisible, loaded } = this.state;
     const { navigation } = this.props;
+    if (!loaded) {
+      return (
+        <View style={Styles.container}>
+          <ActivityIndicator size="large" />
+        </View>
+      );
+    }
     if (currentUser) {
       return (
         <View style={Styles.container}>
           <FlatList
             data={playlists}
-            onPress={uid => {
+            onPress={item => {
               navigation.navigate('Playlists', {
-                uid
+                uid: item.uid
               });
             }}
+            onLongPress={uid => this.onLongPress(uid)}
           />
           <Modal
             animationType="slide"
@@ -103,7 +167,7 @@ class Home extends React.Component {
                 placeholder="Nom de votre playlist"
                 onChangeText={text => this.setState({ text })}
               />
-              <Button title="Login" onPress={this.submitPlaylist} />
+              <Button title="ok" onPress={this.submitPlaylist} />
             </View>
             <ActionButton
               buttonColor="rgba(231,76,60,1)"
@@ -115,7 +179,18 @@ class Home extends React.Component {
         </View>
       );
     }
-    return null;
+    return (
+      <View style={{ marginTop: 22, justifyContent: 'center', alignItems: 'center' }}>
+        <Text>Aucune playlist trouvé !</Text>
+        <Text>Ajouter une nouvelle playlist</Text>
+        <TextInput
+          style={{ height: 40 }}
+          placeholder="Nom de votre playlist"
+          onChangeText={text => this.setState({ text })}
+        />
+        <Button title="ok" onPress={this.submitPlaylist} />
+      </View>
+    );
   }
 }
 

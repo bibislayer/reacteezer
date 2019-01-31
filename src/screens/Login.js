@@ -21,7 +21,7 @@ class Login extends React.Component {
     const { email, password, errorMessage } = this.state;
 
     return (
-      <View style={Styles.container}>
+      <View style={{ marginTop: 22, justifyContent: 'center', alignItems: 'center' }}>
         <Text>Login</Text>
         {errorMessage ? <Text style={{ color: 'red' }}>{errorMessage}</Text> : null}
         <TextInput
@@ -50,7 +50,7 @@ class Login extends React.Component {
 }
 
 Login.propTypes = {
-  navigation: PropTypes.shape({ navigate: PropTypes.func.isRequired }).isRequired,
+  navigation: PropTypes.shape({ navigate: PropTypes.func.isRequired }).isRequired
 };
 
 export default Login;
