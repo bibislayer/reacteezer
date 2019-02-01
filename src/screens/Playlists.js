@@ -14,6 +14,34 @@ class Playlists extends React.Component {
   };
 
   componentDidMount() {
+    this.fetchData();
+  }
+
+  componentDidUpdate() {
+    this.fetchData();
+  }
+
+  onLongPress(uid) {
+    Alert.alert(
+      'Suppression de la track',
+      'Confirmer la suppression de la track',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel'
+        },
+        {
+          text: 'OK',
+          onPress: () => {
+            this.removeTrack(uid);
+          }
+        }
+      ],
+      { cancelable: false }
+    );
+  }
+
+  fetchData() {
     const { navigation } = this.props;
     const uid = navigation.getParam('uid');
     const arrTracks = [];
@@ -44,29 +72,8 @@ class Playlists extends React.Component {
       });
   }
 
-  onLongPress(uid) {
-    Alert.alert(
-      'Suppression de la track',
-      'Confirmer la suppression de la track',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel'
-        },
-        {
-          text: 'OK',
-          onPress: () => {
-            this.removeTrack(uid);
-          }
-        }
-      ],
-      { cancelable: false }
-    );
-  }
-
   removeTrack(uid) {
     const { tracks } = this.state;
-    const arrTracks = tracks;
     const { navigation } = this.props;
     const playlistUid = navigation.getParam('uid');
     const db = firebase.firestore();
@@ -74,9 +81,11 @@ class Playlists extends React.Component {
       .doc(uid)
       .delete()
       .then(() => {
-        const index = arrTracks.indexOf(uid);
-        if (index !== -1) arrTracks.splice(index, 1);
-        this.setState({ tracks: arrTracks });
+        this.setState({
+          tracks: tracks.filter(track => {
+            return track.uid !== uid;
+          })
+        });
         console.log('Document successfully deleted!');
       })
       .catch(error => {

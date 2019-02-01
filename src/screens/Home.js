@@ -114,15 +114,16 @@ class Home extends React.Component {
 
   removePlaylist(uid) {
     const { playlists } = this.state;
-    const arrPlaylists = playlists;
     const db = firebase.firestore();
     db.collection('playlists')
       .doc(uid)
       .delete()
       .then(() => {
-        const index = arrPlaylists.indexOf(uid);
-        if (index !== -1) arrPlaylists.splice(index, 1);
-        this.setState({ playlists: arrPlaylists });
+        this.setState({
+          playlists: playlists.filter(playlist => {
+            return playlist.uid !== uid;
+          })
+        });
         console.log('Document successfully deleted!');
       })
       .catch(error => {
