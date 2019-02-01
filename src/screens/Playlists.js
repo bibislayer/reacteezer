@@ -59,6 +59,7 @@ class Playlists extends React.Component {
           const item = {
             uid: doc.id,
             title: doc.data().title,
+            album: doc.data().album,
             artist: {
               name: doc.data().artist.name
             }

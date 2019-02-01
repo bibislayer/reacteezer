@@ -1,15 +1,5 @@
 import React from 'react';
-import {
-  Modal,
-  Text,
-  View,
-  Image,
-  Alert,
-  TextInput,
-  Button,
-  ActivityIndicator
-} from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome';
+import { Modal, Text, View, Image, Alert, Button, ActivityIndicator } from 'react-native';
 import { Input } from 'react-native-elements';
 import ActionButton from 'react-native-action-button';
 import * as firebase from 'firebase';
@@ -18,11 +8,12 @@ import PropTypes from 'prop-types';
 import Styles from '../utils/Styles';
 import FlatList from '../components/FlatList';
 
+import { connect } from 'react-redux';
+
 const iconFile = require('../assets/icon.png');
 
 class Home extends React.Component {
   state = {
-    currentUser: firebase.auth(),
     playlists: [],
     isModalVisible: false,
     text: null,
@@ -38,10 +29,10 @@ class Home extends React.Component {
     const arrPlaylists = [];
     const db = firebase.firestore();
     const playlists = db.collection('playlists');
-    const { currentUser } = this.state;
-    if (currentUser.currentUser) {
+    const { currentUser } = this.props;
+    if (currentUser) {
       const query = playlists
-        .where('user', '==', currentUser.currentUser.uid)
+        .where('user', '==', currentUser.uid)
         .get()
         .then(snapshot => {
           if (snapshot.empty) {
@@ -132,8 +123,8 @@ class Home extends React.Component {
   }
 
   render() {
-    const { currentUser, playlists, isModalVisible, loaded } = this.state;
-    const { navigation } = this.props;
+    const { playlists, isModalVisible, loaded } = this.state;
+    const { navigation, currentUser } = this.props;
     if (!loaded) {
       return (
         <View style={Styles.container}>
@@ -163,20 +154,16 @@ class Home extends React.Component {
           >
             <View style={{ marginTop: 22, justifyContent: 'center', alignItems: 'center' }}>
               <Text>Ajouter une nouvelle playlist</Text>
-              <TextInput
-                style={{ height: 40 }}
+              <Input
+                style={{ height: 40, marginBottom: 20 }}
                 placeholder="Nom de votre playlist"
                 onChangeText={text => this.setState({ text })}
               />
               <Button title="ok" onPress={this.submitPlaylist} />
             </View>
-            <ActionButton
-              buttonColor="rgba(231,76,60,1)"
-              buttonText="-"
-              onPress={this.toggleModal}
-            />
+            <ActionButton buttonColor="red" buttonText="-" onPress={this.toggleModal} />
           </Modal>
-          <ActionButton buttonColor="rgba(231,76,60,1)" onPress={this.toggleModal} />
+          <ActionButton buttonColor="green" onPress={this.toggleModal} />
         </View>
       );
     }
@@ -184,7 +171,7 @@ class Home extends React.Component {
       <View style={{ marginTop: 22, justifyContent: 'center', alignItems: 'center' }}>
         <Text>Aucune playlist trouvé !</Text>
         <Text>Ajouter une nouvelle playlist</Text>
-        <TextInput
+        <Input
           style={{ height: 40 }}
           placeholder="Nom de votre playlist"
           onChangeText={text => this.setState({ text })}
@@ -199,4 +186,6 @@ Home.propTypes = {
   navigation: PropTypes.shape({ navigate: PropTypes.func.isRequired }).isRequired
 };
 
-export default Home;
+export default connect(state => ({
+  currentUser: state
+}))(Home);
