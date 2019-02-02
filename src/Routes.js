@@ -6,6 +6,7 @@ import Home from './screens/Home';
 import Search from './screens/Search';
 import Playlists from './screens/Playlists';
 import Profile from './screens/Profile';
+import Camera from './screens/Camera';
 import Drawer from './components/Drawer';
 
 const AuthNavigator = createStackNavigator(
@@ -16,7 +17,8 @@ const AuthNavigator = createStackNavigator(
     Home,
     Profile,
     Search,
-    Playlists
+    Playlists,
+    Camera
   },
   {
     initialRoute: 'Loading',

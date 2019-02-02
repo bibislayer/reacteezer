@@ -1,8 +1,26 @@
 import React from 'react';
-import { Button, Text, View, TextInput } from 'react-native';
+import { Button, Text, View, StyleSheet } from 'react-native';
+import { Input } from 'react-native-elements';
 import * as firebase from 'firebase';
 import PropTypes from 'prop-types';
 import Styles from '../utils/Styles';
+import t from 'tcomb-form-native';
+
+const Form = t.form.Form;
+
+const User = t.struct({
+  email: t.String,
+  password: t.String
+});
+
+const styles = StyleSheet.create({
+  container: {
+    justifyContent: 'center',
+    marginTop: 50,
+    padding: 20,
+    backgroundColor: '#ffffff'
+  }
+});
 
 class Login extends React.Component {
   state = { email: '', password: '', errorMessage: '' };
@@ -21,17 +39,18 @@ class Login extends React.Component {
     const { email, password, errorMessage } = this.state;
 
     return (
-      <View style={{ marginTop: 22, justifyContent: 'center', alignItems: 'center' }}>
+      <View style={styles.container}>
         <Text>Login</Text>
+        <Form type={User} />
         {errorMessage ? <Text style={{ color: 'red' }}>{errorMessage}</Text> : null}
-        <TextInput
+        <Input
           style={Styles.textInput}
           autoCapitalize="none"
           placeholder="Email"
           onChangeText={text => this.setState({ email: text })}
           value={email}
         />
-        <TextInput
+        <Input
           secureTextEntry
           style={Styles.textInput}
           autoCapitalize="none"

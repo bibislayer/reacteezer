@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Image, TouchableOpacity, Text } from 'react-native';
+import { View, Image, TouchableOpacity, Text, Button } from 'react-native';
 import { Camera, Permissions } from 'expo';
 
 const iconFile = require('../assets/4kito_no_typo.png');
@@ -15,8 +15,18 @@ class Drawer extends React.Component {
     this.setState({ hasCameraPermission: status === 'granted' });
   }
 
+  signOutUser = async () => {
+    try {
+      await firebase.auth().signOut();
+      navigate('Auth');
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
   render() {
     const { type, hasCameraPermission } = this.state;
+    const { navigation } = this.props;
     if (hasCameraPermission === null) {
       return <View />;
     }
@@ -47,6 +57,7 @@ class Drawer extends React.Component {
             borderRadius: 100
           }}
           onPress={() => {
+            navigation.navigate('Camera');
             this.setState({
               type:
                 type === Camera.Constants.Type.back
@@ -64,6 +75,7 @@ class Drawer extends React.Component {
             }}
           />
         </TouchableOpacity>
+        <Button title="Logout" onPress={() => this.signOutUser} />
       </View>
     );
   }

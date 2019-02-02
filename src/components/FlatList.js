@@ -18,8 +18,7 @@ class MyFlatList extends React.PureComponent {
             onPress={() => onPress(item)}
             onLongPress={() => onLongPress(item.uid)}
             leftAvatar={{
-              source: item.album && { uri: item.album.cover_small },
-              title: item.title
+              source: item.album && { uri: item.album.cover_small }
             }}
           />
         )}

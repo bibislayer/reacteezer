@@ -45,7 +45,7 @@ buck-out
 local.properties
 *.iml
 /android/
-
+.history
 # Node
 node_modules
 *.log

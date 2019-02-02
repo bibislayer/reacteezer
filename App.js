@@ -10,13 +10,21 @@ import firebaseConfig from './src/config/firebase';
 firebase.initializeApp(firebaseConfig);
 
 const theme = {};
+class App extends React.Component {
+  constructor() {
+    super();
+    console.ignoredYellowBox = ['Setting a timer'];
+  }
 
-const App = () => (
-  <Provider store={store}>
-    <ThemeProvider theme={theme}>
-      <Routes />
-    </ThemeProvider>
-  </Provider>
-);
+  render() {
+    return (
+      <Provider store={store}>
+        <ThemeProvider theme={theme}>
+          <Routes />
+        </ThemeProvider>
+      </Provider>
+    );
+  }
+}
 
 export default App;

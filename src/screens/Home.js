@@ -5,10 +5,9 @@ import ActionButton from 'react-native-action-button';
 import * as firebase from 'firebase';
 import 'firebase/firestore';
 import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
 import Styles from '../utils/Styles';
 import FlatList from '../components/FlatList';
-
-import { connect } from 'react-redux';
 
 const iconFile = require('../assets/icon.png');
 
@@ -39,6 +38,15 @@ class Home extends React.Component {
             return;
           }
           snapshot.forEach(doc => {
+            console.log(doc.data());
+            db.collection('playlists/' + doc.id + '/tracks')
+              .get()
+              .then(subCollectionSnapshot => {
+                subCollectionSnapshot.forEach(subDoc => {
+                  console.log(subDoc.data());
+                });
+              });
+
             const item = {
               uid: doc.id,
               title: doc.data().title
@@ -125,6 +133,7 @@ class Home extends React.Component {
   render() {
     const { playlists, isModalVisible, loaded } = this.state;
     const { navigation, currentUser } = this.props;
+    console.log(currentUser);
     if (!loaded) {
       return (
         <View style={Styles.container}>
@@ -183,9 +192,14 @@ class Home extends React.Component {
 }
 
 Home.propTypes = {
-  navigation: PropTypes.shape({ navigate: PropTypes.func.isRequired }).isRequired
+  navigation: PropTypes.shape({ navigate: PropTypes.func.isRequired }).isRequired,
+  currentUser: PropTypes.object.isRequired
 };
 
-export default connect(state => ({
-  currentUser: state
-}))(Home);
+const mapStateToProps = state => {
+  return {
+    currentUser: state.user
+  };
+};
+
+export default connect(mapStateToProps)(Home);
