@@ -8,13 +8,16 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import FlatList from './FlatList';
 import Styles from '../utils/Styles';
+import { collection } from '../redux/actions/index';
 
+const mapDispatchToProps = dispatch => ({
+  dispatchPlaylists: playlist => dispatch(collection(playlist))
+});
 class Playlists extends React.Component {
   state = {
-    playlists: [],
     isModalVisible: false,
     text: null,
-    loaded: true
+    statePlaylists: []
   };
 
   onLongPress(uid) {
@@ -37,24 +40,53 @@ class Playlists extends React.Component {
     );
   }
 
+  componentWillReceiveProps(nextProps) {
+    console.log('update rendering');
+    if (nextProps.playlists !== this.props.playlists) {
+      this.setState({
+        statePlaylists: nextProps.playlists
+      });
+    }
+  }
+
+  componentDidMount() {
+    this.setState({
+      statePlaylists: this.props.playlists
+    });
+  }
+
+  componentDidUpdate(props) {
+    //console.log(props.playlists);
+    //console.log(this.props.playlists);
+    console.log('update rendering');
+    console.log(props.playlists);
+    if (props.playlists !== this.props.playlists) {
+      console.log('update rendering');
+      this.setState({
+        statePlaylists: props.playlists
+      });
+    }
+  }
+
   submitPlaylist = () => {
-    this.setState({ loaded: false });
     const db = firebase.firestore();
-    const { currentUser, text, playlists } = this.state;
+    const { dispatchPlaylists, currentUser, playlists } = this.props;
+    const { text } = this.state;
     const arrPlaylists = playlists;
     db.collection('playlists')
       .add({
         title: text,
-        user: currentUser.currentUser.uid
+        user: currentUser.uid
       })
       .then(doc => {
         const item = {
           uid: doc.id,
           title: text
         };
+
         arrPlaylists.push(item);
-        this.setState({ playlists: arrPlaylists, loaded: true });
-        this.toggleModal();
+        dispatchPlaylists(arrPlaylists);
+        //this.toggleModal();
         console.log('Document successfully written!');
       })
       .catch(error => {
@@ -68,17 +100,17 @@ class Playlists extends React.Component {
   };
 
   removePlaylist(uid) {
-    const { playlists } = this.state;
+    const { playlists, dispatchPlaylists } = this.props;
     const db = firebase.firestore();
     db.collection('playlists')
       .doc(uid)
       .delete()
       .then(() => {
-        this.setState({
-          playlists: playlists.filter(playlist => {
+        dispatchPlaylists(
+          playlists.filter(playlist => {
             return playlist.uid !== uid;
           })
-        });
+        );
         console.log('Document successfully deleted!');
       })
       .catch(error => {
@@ -87,21 +119,15 @@ class Playlists extends React.Component {
   }
 
   render() {
-    const { isModalVisible, loaded } = this.state;
-    const { playlists, navigation, currentUser } = this.props;
-
-    if (!loaded) {
-      return (
-        <View style={Styles.container}>
-          <ActivityIndicator size="large" />
-        </View>
-      );
-    }
-    if (currentUser && playlists) {
+    const { isModalVisible, statePlaylists } = this.state;
+    const { navigation } = this.props;
+    console.log(statePlaylists);
+    console.log('render');
+    if (statePlaylists) {
       return (
         <View style={Styles.container}>
           <FlatList
-            data={playlists}
+            data={statePlaylists}
             onPress={item => {
               navigation.navigate('Playlists', {
                 uid: item.uid
@@ -149,10 +175,15 @@ class Playlists extends React.Component {
 
 Playlists.propTypes = {
   navigation: PropTypes.shape({ navigate: PropTypes.func.isRequired }).isRequired,
-  //  currentUser: PropTypes.objectOf(PropTypes.object()).isRequired
+  playlists: PropTypes.instanceOf(Array).isRequired
 };
 
-export default connect(state => ({
+const mapStateToProps = state => ({
   currentUser: state.user,
   playlists: state.playlists
-}))(Playlists);
+});
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(Playlists);

@@ -4,19 +4,27 @@ import PropTypes from 'prop-types';
 import * as firebase from 'firebase';
 import { connect } from 'react-redux';
 import Styles from '../utils/Styles';
-import { logIn } from '../redux/actions/index';
+import { logIn, collection } from '../redux/actions/index';
 
 const mapDispatchToProps = dispatch => ({
-  dispatchLogin: user => dispatch(logIn(user))
+  dispatchLogin: user => dispatch(logIn(user)),
+  dispatchPlaylists: playlists => dispatch(collection(playlists))
 });
 
 class Loading extends React.Component {
   componentDidMount() {
     const { navigation } = this.props;
     firebase.auth().onAuthStateChanged(user => {
+      if (!user) {
+        navigation.navigate('Login');
+      }
       const { dispatchLogin } = this.props;
-      dispatchLogin(user);
-      navigation.navigate(user ? 'Home' : 'Login');
+      const myuser = {
+        email: user.email,
+        uid: user.uid
+      };
+      dispatchLogin(myuser);
+      this.getPlaylists(myuser);
     });
   }
 
