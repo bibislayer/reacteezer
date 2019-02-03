@@ -42,7 +42,6 @@ class Loading extends React.Component {
           return;
         }
         snapshot.forEach(doc => {
-          //console.log(doc.data());
           db.collection(`playlists/${doc.id}/tracks`)
             .get()
             .then(subCollectionSnapshot => {
@@ -51,10 +50,9 @@ class Loading extends React.Component {
                   uid: subDoc.id,
                   title: subDoc.data().title,
                   album: subDoc.data().album,
-                  artist: {
-                    name: subDoc.data().artist.name
-                  }
+                  artist: subDoc.data().artist
                 };
+
                 arrItems.push(item);
               });
             });

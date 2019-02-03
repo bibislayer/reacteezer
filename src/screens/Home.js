@@ -1,7 +1,5 @@
 import React from 'react';
-import { Text, View } from 'react-native';
 import { connect } from 'react-redux';
-import Styles from '../utils/Styles';
 import Playlists from '../components/Playlists';
 
 class Home extends React.Component {
@@ -14,4 +12,12 @@ class Home extends React.Component {
   }
 }
 
-export default connect(state => ({ currentUser: state.user, playlists: state.playlists }))(Home);
+const mapStateToProps = state => {
+  console.log('mapStateHome');
+  return {
+    currentUser: state.user,
+    playlists: state.playlists
+  };
+};
+
+export default connect(mapStateToProps)(Home);

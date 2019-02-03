@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal, Text, View, Image, Alert, Button, ActivityIndicator } from 'react-native';
+import { Modal, Text, View, Alert, Button } from 'react-native';
 import { Input } from 'react-native-elements';
 import ActionButton from 'react-native-action-button';
 import * as firebase from 'firebase';
@@ -8,16 +8,12 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import FlatList from './FlatList';
 import Styles from '../utils/Styles';
-import { collection } from '../redux/actions/index';
+import { addPlaylist, removePlaylist } from '../redux/actions/index';
 
-const mapDispatchToProps = dispatch => ({
-  dispatchPlaylists: playlist => dispatch(collection(playlist))
-});
 class Playlists extends React.Component {
   state = {
     isModalVisible: false,
-    text: null,
-    statePlaylists: []
+    text: null
   };
 
   onLongPress(uid) {
@@ -40,37 +36,9 @@ class Playlists extends React.Component {
     );
   }
 
-  componentWillReceiveProps(nextProps) {
-    console.log('update rendering');
-    if (nextProps.playlists !== this.props.playlists) {
-      this.setState({
-        statePlaylists: nextProps.playlists
-      });
-    }
-  }
-
-  componentDidMount() {
-    this.setState({
-      statePlaylists: this.props.playlists
-    });
-  }
-
-  componentDidUpdate(props) {
-    //console.log(props.playlists);
-    //console.log(this.props.playlists);
-    console.log('update rendering');
-    console.log(props.playlists);
-    if (props.playlists !== this.props.playlists) {
-      console.log('update rendering');
-      this.setState({
-        statePlaylists: props.playlists
-      });
-    }
-  }
-
   submitPlaylist = () => {
     const db = firebase.firestore();
-    const { dispatchPlaylists, currentUser, playlists } = this.props;
+    const { currentUser, playlists, dispatchAddPlaylist, navigation } = this.props;
     const { text } = this.state;
     const arrPlaylists = playlists;
     db.collection('playlists')
@@ -83,14 +51,13 @@ class Playlists extends React.Component {
           uid: doc.id,
           title: text
         };
-
-        arrPlaylists.push(item);
-        dispatchPlaylists(arrPlaylists);
-        //this.toggleModal();
+        dispatchAddPlaylist(item);
+        navigation.navigate('Home', { reloaded: true });
+        this.toggleModal();
         console.log('Document successfully written!');
       })
       .catch(error => {
-        console.error('Error writing document: ', error);
+        console.log('Error writing document: ', error);
       });
   };
 
@@ -100,17 +67,14 @@ class Playlists extends React.Component {
   };
 
   removePlaylist(uid) {
-    const { playlists, dispatchPlaylists } = this.props;
+    const { dispatchRemovePlaylist, navigation } = this.props;
     const db = firebase.firestore();
     db.collection('playlists')
       .doc(uid)
       .delete()
       .then(() => {
-        dispatchPlaylists(
-          playlists.filter(playlist => {
-            return playlist.uid !== uid;
-          })
-        );
+        dispatchRemovePlaylist(uid);
+        navigation.navigate('Home', { reloaded: true });
         console.log('Document successfully deleted!');
       })
       .catch(error => {
@@ -119,17 +83,15 @@ class Playlists extends React.Component {
   }
 
   render() {
-    const { isModalVisible, statePlaylists } = this.state;
-    const { navigation } = this.props;
-    console.log(statePlaylists);
-    console.log('render');
-    if (statePlaylists) {
+    const { isModalVisible } = this.state;
+    const { navigation, playlists } = this.props;
+    if (playlists) {
       return (
         <View style={Styles.container}>
           <FlatList
-            data={statePlaylists}
+            data={playlists}
             onPress={item => {
-              navigation.navigate('Playlists', {
+              navigation.navigate('Tracks', {
                 uid: item.uid
               });
             }}
@@ -175,12 +137,19 @@ class Playlists extends React.Component {
 
 Playlists.propTypes = {
   navigation: PropTypes.shape({ navigate: PropTypes.func.isRequired }).isRequired,
-  playlists: PropTypes.instanceOf(Array).isRequired
+  playlists: PropTypes.instanceOf(Array).isRequired,
+  dispatchAddPlaylist: PropTypes.func.isRequired,
+  dispatchRemovePlaylist: PropTypes.func.isRequired
 };
 
 const mapStateToProps = state => ({
   currentUser: state.user,
   playlists: state.playlists
+});
+
+const mapDispatchToProps = dispatch => ({
+  dispatchAddPlaylist: playlist => dispatch(addPlaylist(playlist)),
+  dispatchRemovePlaylist: playlist => dispatch(removePlaylist(playlist))
 });
 
 export default connect(
